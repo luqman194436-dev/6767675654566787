@@ -104,6 +104,8 @@ class MainActivity : ComponentActivity() {
                   pendingTransitionTarget = true to 1
                 }
               },
+              onButtonClick = { gameViewModel.soundEngine.playClick() },
+              onSettingsClick = { gameViewModel.soundEngine.playPauseClick() },
             )
           } else {
             GameScreen(

@@ -96,6 +96,8 @@ fun HomeScreen(
   onClaimStarterPack: () -> Unit,
   onUnlockNoAds: () -> Unit,
   onResetToLevel1: () -> Unit,
+  onButtonClick: () -> Unit = {},
+  onSettingsClick: () -> Unit = {},
   modifier: Modifier = Modifier,
 ) {
   var showSettings by remember { mutableStateOf(false) }
@@ -132,7 +134,13 @@ fun HomeScreen(
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        CoinPill(coins = progress.coins, onAddClick = { showShop = true })
+        CoinPill(
+          coins = progress.coins,
+          onAddClick = {
+            onButtonClick()
+            showShop = true
+          },
+        )
       }
 
       // Left-side floating promo buttons tucked closely together near the left edge
@@ -143,11 +151,17 @@ fun HomeScreen(
       ) {
         AnimatedNoAdsButton(
           adFreeActive = progress.noAdsUnlocked,
-          onClick = { showNoAds = true },
+          onClick = {
+            onButtonClick()
+            showNoAds = true
+          },
         )
         AnimatedStarterPackButton(
           claimed = progress.starterPackClaimed,
-          onClick = { showStarterPack = true },
+          onClick = {
+            onButtonClick()
+            showStarterPack = true
+          },
         )
       }
 
@@ -162,7 +176,10 @@ fun HomeScreen(
         ImageIconButton(
           drawableRes = R.drawable.btn_home_settings,
           contentDescription = "Settings",
-          onClick = { showSettings = true },
+          onClick = {
+            onSettingsClick()
+            showSettings = true
+          },
           testTag = "home_settings_button",
           visualScale = 1.28f,
         )
@@ -216,7 +233,10 @@ fun HomeScreen(
         ImageIconButton(
           drawableRes = R.drawable.btn_home_shop,
           contentDescription = "Shop",
-          onClick = { showShop = true },
+          onClick = {
+            onButtonClick()
+            showShop = true
+          },
           testTag = "home_shop_button",
         )
       }
@@ -233,7 +253,10 @@ fun HomeScreen(
         onResetToLevel1()
         showSettings = false
       },
-      onDismiss = { showSettings = false },
+      onDismiss = {
+        onButtonClick()
+        showSettings = false
+      },
     )
   }
 
@@ -246,7 +269,10 @@ fun HomeScreen(
       notice = shopNotice,
       onBuyBooster = onBuyBooster,
       onClaimFreeCoins = onClaimFreeCoins,
-      onDismiss = { showShop = false },
+      onDismiss = {
+        onButtonClick()
+        showShop = false
+      },
     )
   }
 
@@ -265,7 +291,10 @@ fun HomeScreen(
         onUnlockNoAds()
         showNoAds = false
       },
-      onDismiss = { showNoAds = false },
+      onDismiss = {
+        onButtonClick()
+        showNoAds = false
+      },
     )
   }
 
@@ -284,7 +313,10 @@ fun HomeScreen(
         onClaimStarterPack()
         showStarterPack = false
       },
-      onDismiss = { showStarterPack = false },
+      onDismiss = {
+        onButtonClick()
+        showStarterPack = false
+      },
     )
   }
 }

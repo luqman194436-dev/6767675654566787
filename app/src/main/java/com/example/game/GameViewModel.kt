@@ -350,7 +350,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
           val p = (v.animProgress + dt * 1.15f).coerceAtMost(1f)
           v =
             if (p >= 1f) {
-              soundEngine.playTock()
               v.copy(
                 animProgress = 1f,
                 stage = VehicleStage.PARKED,
@@ -1010,7 +1009,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
       return
     }
 
-    soundEngine.playWhoosh()
+    soundEngine.playBusTap()
     val updatedSlots = state.slots.toMutableList()
     updatedSlots[freeSlotIndex] = updatedSlots[freeSlotIndex].copy(occupantVehicleId = tapped.id)
 
@@ -1084,7 +1083,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
       _uiState.update { it.copy(shopNotice = "Not enough coins! Need 300 coins.") }
       return
     }
-    soundEngine.playDing()
+    soundEngine.playUnlock()
     viewModelScope.launch { prefsRepo.adjustCoins(-300) }
     val updatedSlots =
       state.slots.mapIndexed { idx, s ->
@@ -1142,7 +1141,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun claimFreeBooster(type: BoosterType) {
-    soundEngine.playDing()
+    soundEngine.playUnlock()
     viewModelScope.launch {
       when (type) {
         BoosterType.BOARD -> prefsRepo.setBoosterCount(board = _progress.value.boardBoosters + 1)
@@ -1281,7 +1280,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
           _uiState.update { it.copy(statusBannerText = "All waiting slots are already unlocked!") }
           return
         }
-        soundEngine.playDing()
+        soundEngine.playUnlock()
         viewModelScope.launch {
           prefsRepo.setBoosterCount(vip = (_progress.value.vipBoosters - 1).coerceAtLeast(0))
         }
@@ -1408,7 +1407,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun pauseGame() {
-    soundEngine.playClick()
+    soundEngine.playPauseClick()
     if (_uiState.value.outcome == GameOutcome.PLAYING) {
       _uiState.update { it.copy(outcome = GameOutcome.PAUSED) }
     }
@@ -1442,15 +1441,23 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun dismissBoosterShop() {
+    soundEngine.playClick()
     _uiState.update { it.copy(activeBoosterShop = null, shopNotice = null) }
   }
 
   fun dismissSlotUnlock() {
+    soundEngine.playClick()
     _uiState.update { it.copy(activeSlotUnlockIndex = null, shopNotice = null) }
   }
 
   fun toggleSound(enabled: Boolean) {
-    soundEngine.playClick()
+    if (enabled) {
+      soundEngine.soundEnabled = true
+      soundEngine.playClick()
+    } else {
+      soundEngine.playClick()
+      soundEngine.soundEnabled = false
+    }
     viewModelScope.launch { prefsRepo.setSoundEnabled(enabled) }
   }
 
@@ -1471,17 +1478,17 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
   }
 
   fun claimStarterPack() {
-    soundEngine.playWin()
+    soundEngine.playUnlock()
     viewModelScope.launch { prefsRepo.claimStarterPack() }
   }
 
   fun unlockNoAds() {
-    soundEngine.playDing()
+    soundEngine.playUnlock()
     viewModelScope.launch { prefsRepo.unlockNoAds() }
   }
 
   fun addBonusCoins(amount: Int) {
-    soundEngine.playDing()
+    soundEngine.playUnlock()
     viewModelScope.launch { prefsRepo.adjustCoins(amount) }
     _uiState.update { it.copy(shopNotice = "+$amount coins added!") }
   }

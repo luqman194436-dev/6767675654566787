@@ -45,6 +45,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -287,6 +289,10 @@ fun GameScreen(
         drawableRes = R.drawable.btn_booster_board,
         contentDescription = "Board Passengers",
         ownedCount = uiState.boardBoosters,
+        badgeCenterXFrac = 0.770f,
+        badgeCenterYFrac = 0.741f,
+        badgeDiamFrac = 0.473f,
+        drawableAspectRatio = 427f / 410f,
         testTag = "booster_board",
         onClick = { viewModel.onBoosterTapped(BoosterType.BOARD) },
       )
@@ -295,6 +301,10 @@ fun GameScreen(
         drawableRes = R.drawable.btn_booster_refresh,
         contentDescription = "Refresh Vehicles",
         ownedCount = uiState.refreshBoosters,
+        badgeCenterXFrac = 0.846f,
+        badgeCenterYFrac = 0.805f,
+        badgeDiamFrac = 0.374f,
+        drawableAspectRatio = 423f / 410f,
         testTag = "booster_refresh",
         onClick = { viewModel.onBoosterTapped(BoosterType.REFRESH) },
       )
@@ -303,6 +313,10 @@ fun GameScreen(
         drawableRes = R.drawable.btn_booster_vip,
         contentDescription = "VIP Parking Slot",
         ownedCount = uiState.vipBoosters,
+        badgeCenterXFrac = 0.848f,
+        badgeCenterYFrac = 0.824f,
+        badgeDiamFrac = 0.342f,
+        drawableAspectRatio = 433f / 410f,
         testTag = "booster_vip",
         onClick = { viewModel.onBoosterTapped(BoosterType.VIP_SLOT) },
       )
@@ -436,14 +450,17 @@ private fun ImageBoosterButton(
   drawableRes: Int,
   contentDescription: String,
   ownedCount: Int,
+  badgeCenterXFrac: Float,
+  badgeCenterYFrac: Float,
+  badgeDiamFrac: Float,
+  drawableAspectRatio: Float,
   testTag: String,
   onClick: () -> Unit,
 ) {
-  Box(
+  BoxWithConstraints(
     modifier =
       Modifier
         .size(76.dp)
-        .clip(RoundedCornerShape(16.dp))
         .clickable(onClick = onClick)
         .testTag(testTag),
     contentAlignment = Alignment.Center,
@@ -455,27 +472,52 @@ private fun ImageBoosterButton(
       modifier = Modifier.fillMaxSize(),
     )
 
-    // When the player owns >= 1 of this booster, cover the built-in red '+' badge with a green count pill
+    // When the player owns >= 1 of this booster, replace the red '+' badge seamlessly with the glossy 3D green '1'/count badge
     if (ownedCount > 0) {
+      val drawW = maxWidth
+      val drawH = drawW / drawableAspectRatio
+      val topOffset = (maxHeight - drawH) * 0.5f
+      val badgeSize = drawW * badgeDiamFrac
+      val badgeX = drawW * badgeCenterXFrac - badgeSize * 0.5f
+      val badgeY = topOffset + drawH * badgeCenterYFrac - badgeSize * 0.5f
+
       Box(
-        modifier =
-          Modifier
-            .align(Alignment.BottomEnd)
-            .size(26.dp)
-            .clip(CircleShape)
-            .background(
-              Brush.verticalGradient(
-                colors = listOf(PlayGreen, PlayGreenDark),
-              )
-            )
-            .border(2.dp, Color.White, CircleShape),
+        modifier = Modifier.align(Alignment.TopStart).offset(x = badgeX, y = badgeY).size(badgeSize),
         contentAlignment = Alignment.Center,
       ) {
-        Text(
-          text = ownedCount.toString(),
-          style = MaterialTheme.typography.labelSmall.copy(fontFamily = FredokaFontFamily, fontSize = 13.sp),
-          color = Color.White,
-        )
+        if (ownedCount == 1) {
+          Image(
+            painter = painterResource(id = R.drawable.badge_booster_green_1),
+            contentDescription = "1 available",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize(),
+          )
+        } else {
+          Image(
+            painter = painterResource(id = R.drawable.badge_booster_green_empty),
+            contentDescription = "$ownedCount available",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize(),
+          )
+          val countStyle =
+            MaterialTheme.typography.labelLarge.copy(
+              fontFamily = FredokaFontFamily,
+              fontSize = if (ownedCount >= 10) 13.sp else 16.sp,
+              fontWeight = FontWeight.ExtraBold,
+            )
+          Text(
+            text = ownedCount.toString(),
+            style = countStyle.copy(drawStyle = Stroke(width = 6f, join = StrokeJoin.Round)),
+            color = Color(0xFF0D3E00),
+            maxLines = 1,
+          )
+          Text(
+            text = ownedCount.toString(),
+            style = countStyle,
+            color = Color.White,
+            maxLines = 1,
+          )
+        }
       }
     }
   }
